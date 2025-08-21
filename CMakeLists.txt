@@ -5,3 +5,5 @@ project(blinky_the_second)
 
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/toggle_led_thread.c)
+target_sources(app PRIVATE src/button_interrupt_controlled_led.c)
+target_sources(app PRIVATE src/led_utils.c)
