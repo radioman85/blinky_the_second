@@ -3,8 +3,10 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(blinky_the_second)
 
-target_sources(app PRIVATE src/main.c)
-target_sources(app PRIVATE src/toggle_led_thread.c)
-target_sources(app PRIVATE src/button_interrupt_controlled_led.c)
-target_sources(app PRIVATE src/led_utils.c)
-target_sources(app PRIVATE src/led_shell_cmd_control.c)
+target_sources(app PRIVATE
+    src/main.c
+    src/toggle_led_thread.c
+    src/button_interrupt_controlled_led.c
+    src/led_utils.c
+    src/led_shell_cmd_control.c
+)
