@@ -18,13 +18,44 @@
 // BLE data handler for PWM control
 static void handle_ble_data(const uint8_t *data, uint16_t len)
 {
-    // Convert received data to PWM value (assuming single byte 0-255)
+    // Convert received data to PWM value
     if (len == 0) {
         return;
     }
     
-    // Use first byte as PWM duty cycle (0-255)
-    uint8_t pwm_value = data[0];
+    uint8_t pwm_value;
+    
+    // Check if data looks like ASCII digits
+    bool is_ascii = true;
+    for (int i = 0; i < len; i++) {
+        if (data[i] < '0' || data[i] > '9') {
+            is_ascii = false;
+            break;
+        }
+    }
+    
+    if (is_ascii && len > 0) {
+        // Parse as ASCII number string
+        char temp_str[16];
+        int copy_len = (len < 15) ? len : 15;
+        memcpy(temp_str, data, copy_len);
+        temp_str[copy_len] = '\0';  // Null-terminate
+        
+        int parsed_value = atoi(temp_str);
+        if (parsed_value < 0) parsed_value = 0;
+        if (parsed_value > 255) parsed_value = 255;
+        pwm_value = (uint8_t)parsed_value;
+        
+        printk("BLE data received: %d bytes, ASCII: '%s', parsed: %d\n", len, temp_str, parsed_value);
+    } else if (len == 1) {
+        // Single byte - treat as binary value (0-255)
+        pwm_value = data[0];
+        printk("BLE data received: 1 byte, binary value: %d\n", pwm_value);
+    } else {
+        // Multiple bytes, non-ASCII - use first byte
+        pwm_value = data[0];
+        printk("BLE data received: %d bytes, using first byte: %d\n", len, pwm_value);
+    }
     
     printk("BLE data received: %d bytes, PWM value: %d\n", len, pwm_value);
     
@@ -45,12 +76,13 @@ void main(void)
     int ret;
 
     // Optional: configure your LEDs as before
-    static const struct gpio_dt_spec led_1 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    ret = configure_led_pin(&led_1);
-    if (ret < 0) {
-        printk("Failed to configure LED1\n");
-    }
-    init_toggle_led_thread(&led_1);
+    // LED1 (P0.28) is now controlled by hardware PWM - disable GPIO toggle
+    // static const struct gpio_dt_spec led_1 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    // ret = configure_led_pin(&led_1);
+    // if (ret < 0) {
+    //     printk("Failed to configure LED1\n");
+    // }
+    // init_toggle_led_thread(&led_1);
 
     static const struct gpio_dt_spec led_2 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     ret = configure_led_pin(&led_2);

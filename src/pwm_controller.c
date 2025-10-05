@@ -49,7 +49,7 @@ int init_pwm_controller(void)
     
     // Start with hard-coded 50% duty cycle at 10Hz
     printk("Setting PWM: period=%u ns, duty=%u ns\n", PWM_PERIOD_NS, PWM_DUTY_50_NS);
-    int ret = pwm_set(pwm_dev, pwm_channel, PWM_PERIOD_NS, PWM_DUTY_50_NS, 0);
+    int ret = pwm_set(pwm_dev, pwm_channel, PWM_PERIOD_NS, PWM_DUTY_50_NS, PWM_POLARITY_NORMAL);
     if (ret < 0) {
         printk("Error setting PWM: %d\n", ret);
         return ret;
@@ -70,11 +70,14 @@ int set_pwm_duty_cycle(uint8_t duty_cycle)
     }
     
     // Convert 0-255 to duty cycle in nanoseconds
-    uint32_t duty_ns = (PWM_PERIOD_NS * duty_cycle) / 255;
+    uint64_t temp_calc = (uint64_t)PWM_PERIOD_NS * duty_cycle;
+    uint32_t duty_ns = temp_calc / 255;
     
+    printk("PWM calculation: period=%u, duty_cycle=%d\n", PWM_PERIOD_NS, duty_cycle);
+    printk("temp_calc=%llu, duty_ns=%u\n", temp_calc, duty_ns);
     printk("Setting Hardware PWM duty cycle: %d/255 (%u ns)\n", duty_cycle, duty_ns);
     
-    int ret = pwm_set(pwm_dev, pwm_channel, PWM_PERIOD_NS, duty_ns, 0);
+    int ret = pwm_set(pwm_dev, pwm_channel, PWM_PERIOD_NS, duty_ns, PWM_POLARITY_NORMAL);
     if (ret < 0) {
         printk("Error setting PWM duty cycle: %d\n", ret);
         return ret;
