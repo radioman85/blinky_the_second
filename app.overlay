@@ -1,0 +1,4 @@
+/*
+ * Simple overlay for nRF5340dk
+ * No specific configurations needed for direct GPIO access
+ */

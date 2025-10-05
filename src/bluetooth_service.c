@@ -11,6 +11,7 @@
 
 // Static variables for Bluetooth service
 static const struct gpio_dt_spec *status_led = NULL;
+static ble_data_callback_t data_callback = NULL;
 
 static void connected(struct bt_conn *conn, uint8_t err)
 {
@@ -44,6 +45,11 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
 static void bt_receive_cb(struct bt_conn *conn, const uint8_t *const data, uint16_t len)
 {
     printk("Received data over BLE: %.*s\n", len, data);
+    
+    // Call the registered callback if available
+    if (data_callback) {
+        data_callback(data, len);
+    }
 }
 
 static struct bt_nus_cb nus_cb = {
@@ -93,4 +99,9 @@ int init_bluetooth_service(const struct gpio_dt_spec *led)
     printk("Advertising successfully started\n");
     
     return 0;
+}
+
+void set_ble_data_callback(ble_data_callback_t callback)
+{
+    data_callback = callback;
 }

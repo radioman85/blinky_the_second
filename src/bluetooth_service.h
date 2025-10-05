@@ -2,6 +2,15 @@
 #define BLUETOOTH_SERVICE_H
 
 #include <zephyr/drivers/gpio.h>
+#include <stdint.h>
+
+/**
+ * @brief Callback function type for BLE data reception
+ * 
+ * @param data Pointer to received data
+ * @param len Length of received data
+ */
+typedef void (*ble_data_callback_t)(const uint8_t *data, uint16_t len);
 
 /**
  * @brief Initialize the Bluetooth service
@@ -13,5 +22,12 @@
  * @return int 0 on success, negative error code on failure
  */
 int init_bluetooth_service(const struct gpio_dt_spec *status_led);
+
+/**
+ * @brief Set callback function for BLE data reception
+ * 
+ * @param callback Function to call when BLE data is received
+ */
+void set_ble_data_callback(ble_data_callback_t callback);
 
 #endif // BLUETOOTH_SERVICE_H

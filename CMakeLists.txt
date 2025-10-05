@@ -10,4 +10,5 @@ target_sources(app PRIVATE
     src/led_utils.c
     src/led_shell_cmd_control.c
     src/bluetooth_service.c
+    src/pwm_controller.c
 )
