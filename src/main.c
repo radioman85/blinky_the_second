@@ -16,33 +16,24 @@
 #define FAST_TOGGLE_MS  10   // 10ms = 50Hz toggle rate
 
 // BLE data handler for PWM control
-void handle_ble_data(const uint8_t *data, uint16_t len)
+static void handle_ble_data(const uint8_t *data, uint16_t len)
 {
-    char temp_buffer[16];
-    
-    // Ensure we don't overflow the buffer
-    if (len >= sizeof(temp_buffer)) {
-        printk("BLE data too long, truncating\n");
-        len = sizeof(temp_buffer) - 1;
+    // Convert received data to PWM value (assuming single byte 0-255)
+    if (len == 0) {
+        return;
     }
     
-    // Copy data and null terminate
-    memcpy(temp_buffer, data, len);
-    temp_buffer[len] = '\0';
+    // Use first byte as PWM duty cycle (0-255)
+    uint8_t pwm_value = data[0];
     
-    // Convert to integer (0-255 PWM value)
-    int pwm_value = atoi(temp_buffer);
+    printk("BLE data received: %d bytes, PWM value: %d\n", len, pwm_value);
     
-    // Clamp to valid range
-    if (pwm_value < 0) pwm_value = 0;
-    if (pwm_value > 255) pwm_value = 255;
-    
-    // Set PWM duty cycle
+    // Set hardware PWM duty cycle
     int ret = set_pwm_duty_cycle((uint8_t)pwm_value);
     if (ret == 0) {
-        printk("PWM set to %d via BLE\n", pwm_value);
+        printk("Hardware PWM set to %d via BLE\n", pwm_value);
     } else {
-        printk("Failed to set PWM: %d\n", ret);
+        printk("Failed to set Hardware PWM: %d\n", ret);
     }
 }
 
@@ -75,10 +66,10 @@ void main(void)
     }
     init_led_shell_cmd_control(&led_3);
 
-    // Initialize PWM controller
+    // Initialize Hardware PWM controller
     ret = init_pwm_controller();
     if (ret < 0) {
-        printk("Failed to initialize PWM controller\n");
+        printk("Failed to initialize Hardware PWM controller\n");
         return;
     }
 
@@ -89,14 +80,14 @@ void main(void)
         return;
     }
     
-    // Set up BLE data callback for PWM control
+    // Set up BLE data callback for Hardware PWM control
     set_ble_data_callback(handle_ble_data);
 
-    printk("PWM controller ready for BLE control on P0.04\n");
-    printk("Send PWM values (0-255) via BLE to control the pin\n");
+    printk("Hardware PWM controller ready for BLE control on P0.28\n");
+    printk("Send PWM values (0-255) via BLE to control duty cycle\n");
     
-    // Initialize with PWM off
-    set_pwm_duty_cycle(0);
+    // Start Hardware PWM with 25% duty cycle
+    set_pwm_duty_cycle(64);
     
     while (1) {
         k_msleep(SLEEP_TIME_MS);
