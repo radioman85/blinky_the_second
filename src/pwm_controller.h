@@ -5,10 +5,11 @@
 #include <stdbool.h>
 
 /**
- * @brief PWM Controller Module
+ * @brief RC Servo PWM Controller Module
  * 
- * This module provides a clean interface for controlling PWM output
- * on the nRF5340dk board. It uses P0.13 as the default PWM pin.
+ * This module provides RC servo control via hardware PWM on P0.28.
+ * Generates standard RC servo signals: 50Hz (20ms period), 1-2ms pulse width.
+ * Input range: 0-1000 (0 = 1ms, 500 = 1.5ms, 1000 = 2ms)
  */
 
 /**
@@ -21,19 +22,19 @@
 int init_pwm_controller(void);
 
 /**
- * @brief Set PWM duty cycle
+ * @brief Set RC servo position
  * 
- * @param duty_cycle Duty cycle value (0-255, where 0=0% and 255=100%)
+ * @param position Servo position (0-1000, where 0=1ms, 500=1.5ms, 1000=2ms)
  * @return int 0 on success, negative error code on failure
  */
-int set_pwm_duty_cycle(uint8_t duty_cycle);
+int set_pwm_duty_cycle(uint16_t position);
 
 /**
- * @brief Get current PWM duty cycle
+ * @brief Get current servo position
  * 
- * @return uint8_t Current duty cycle (0-255)
+ * @return uint16_t Current position (0-1000)
  */
-uint8_t get_pwm_duty_cycle(void);
+uint16_t get_pwm_duty_cycle(void);
 
 /**
  * @brief Enable/disable PWM output
