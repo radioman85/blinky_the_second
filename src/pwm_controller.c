@@ -20,15 +20,11 @@ static bool pwm_enabled = false;
 
 int init_pwm_controller(void)
 {
-    printk("Attempting to initialize Hardware PWM...\n");
-    
     // Try to get PWM2 device first
     pwm_dev = DEVICE_DT_GET_OR_NULL(DT_NODELABEL(pwm2));
     if (!pwm_dev) {
-        printk("PWM2 not available, trying PWM1...\n");
         pwm_dev = DEVICE_DT_GET_OR_NULL(DT_NODELABEL(pwm1));
         if (!pwm_dev) {
-            printk("PWM1 not available, trying PWM0...\n");
             pwm_dev = DEVICE_DT_GET_OR_NULL(DT_NODELABEL(pwm0));
             if (!pwm_dev) {
                 printk("Error: No PWM device available\n");
@@ -36,28 +32,18 @@ int init_pwm_controller(void)
             }
         }
     }
-    
-    printk("PWM device: %p\n", pwm_dev);
-    printk("PWM channel: %d\n", pwm_channel);
-    
+
     // Check if PWM device is ready
     if (!device_is_ready(pwm_dev)) {
         printk("Error: PWM device not ready\n");
         return -ENODEV;
     }
-    printk("PWM device is ready!\n");
-
-    printk("Hardware PWM controller initialized on P0.28 (channel %d)\n", pwm_channel);
-    
     // Start with center position (50% = 1.5ms pulse)
-    printk("Setting RC Servo PWM: period=%u ns, pulse=%u ns (center position)\n", PWM_PERIOD_NS, PWM_CENTER_PULSE_NS);
     int ret = pwm_set(pwm_dev, pwm_channel, PWM_PERIOD_NS, PWM_CENTER_PULSE_NS, PWM_POLARITY_NORMAL);
     if (ret < 0) {
         printk("Error setting PWM: %d\n", ret);
         return ret;
     }
-    
-    printk("RC Servo PWM started: 50Hz, 1.5ms pulse (center position)\n");
     current_position = 500; // Center position = 500/1000
     pwm_enabled = true;
     
@@ -73,10 +59,6 @@ int set_pwm_duty_cycle(uint16_t position)
     
     // Convert 0-1000 to RC servo pulse width (1ms to 2ms)
     uint32_t pulse_ns = PWM_MIN_PULSE_NS + ((PWM_MAX_PULSE_NS - PWM_MIN_PULSE_NS) * position) / 1000;
-    
-    printk("RC Servo calculation: input=%d/1000, pulse=%u ns (%.2f ms)\n", 
-           position, pulse_ns, pulse_ns / 1000000.0f);
-    printk("Setting RC Servo PWM: %d/1000 (%u ns pulse)\n", position, pulse_ns);
     
     int ret = pwm_set(pwm_dev, pwm_channel, PWM_PERIOD_NS, pulse_ns, PWM_POLARITY_NORMAL);
     if (ret < 0) {

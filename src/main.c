@@ -35,36 +35,23 @@ static void handle_ble_data(const uint8_t *data, uint16_t len)
     }
     
     if (is_ascii && len > 0) {
-        // Parse as ASCII number string
         char temp_str[16];
         int copy_len = (len < 15) ? len : 15;
         memcpy(temp_str, data, copy_len);
-        temp_str[copy_len] = '\0';  // Null-terminate
-        
+        temp_str[copy_len] = '\0';
         int parsed_value = atoi(temp_str);
         if (parsed_value < 0) parsed_value = 0;
         if (parsed_value > 1000) parsed_value = 1000;
         pwm_value = (uint16_t)parsed_value;
-        
-        printk("BLE data received: %d bytes, ASCII: '%s', parsed: %d\n", len, temp_str, parsed_value);
     } else if (len == 1) {
-        // Single byte - treat as binary value (0-255)
         pwm_value = data[0];
-        printk("BLE data received: 1 byte, binary value: %d\n", pwm_value);
     } else {
-        // Multiple bytes, non-ASCII - use first byte
         pwm_value = data[0];
-        printk("BLE data received: %d bytes, using first byte: %d\n", len, pwm_value);
     }
-    
-    printk("BLE data received: %d bytes, PWM value: %d\n", len, pwm_value);
-    
-    // Set RC servo position
+
     int ret = set_pwm_duty_cycle(pwm_value);
-    if (ret == 0) {
-        printk("RC Servo set to %d/1000 via BLE\n", pwm_value);
-    } else {
-        printk("Failed to set RC Servo: %d\n", ret);
+    if (ret != 0) {
+        printk("PWM set err=%d\n", ret);
     }
 }
 
@@ -115,8 +102,7 @@ void main(void)
     // Set up BLE data callback for Hardware PWM control
     set_ble_data_callback(handle_ble_data);
 
-    printk("Hardware PWM controller ready for BLE control on P0.28\n");
-    printk("Send PWM values (0-255) via BLE to control duty cycle\n");
+    // Suppress informational banners to keep output minimal.
     
     // Start Hardware PWM with 25% duty cycle
     set_pwm_duty_cycle(64);
